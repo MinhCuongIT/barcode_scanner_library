@@ -15,86 +15,83 @@ class BarcodeScan:
         self.list_devices = []
         self.current_device = None
 
-    def __del__(self):
-        self.close()
-
     def __str__(self):
-        return
+        return f"Current device: {self.current_device}"
 
-    def get_list_devices():
+    def get_list_devices(self):
         '''
         Get list of the devices visible
         '''
         print('Searching for devices...')
-        devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
+        list_deivce = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
         print('----List devices-----------')
-        for device in devices:
-            print(device.fn, device.name, device.phys)
+        for d in list_deivce:
+            print(d.fn, d.name, d.phys)
         print('---------------------------')
-        self.list_devices = devices
-        return devices
+        self.list_devices = list_deivce
+        return list_deivce
 
-    def connect_device(deviceId):
+    def connect_device(self, deviceId):
         '''
         Connect to a device with an id from get_list_devices method
         '''
         # sample:"/dev/input/event4"
         try:
             if deviceId:
-            device = evdev.InputDevice(deviceId)
-            print(f"Connected to '{str(device.name)}'")
-            self.current_device = device
-            return device
-        else:
-            return None
-        except expression as e:
-            print(f'Has an error when connect to device: {e}')
+                d = evdev.InputDevice(deviceId)
+                print(f"Connected to '{str(d.name)}'")
+                self.current_device = d
+                return d
+            else:
+                return None
+        except:
+            print('An error occurred when connect to a device.')
 
-    def disconnect_device():
+    def disconnect_device(self):
         '''
         Disconnect to the device to release grab order to other application can use it
         '''
-        if self.device != None:
-            self.device.ungrab()
+        if self.current_device != None:
+            self.current_device.ungrab()
         else:
             print('No device found!')
 
-    def read_data():
+    def read_data(self):
         '''
         Read data one by one when the device is establish
         This method return name, code and value which read from device
         '''
-        if self.device:
+        if self.current_device:
             print('-----Begin to receive data-----')
-            for event in self.device.read_loop():
+            for event in self.current_device.read_loop():
                 # print(type(event))
-                print(self.device.name + " : " + str(event.code) +
+                print(self.current_device.name + " : " + str(event.code) +
                       ' => ' + str(event.value))
         else:
             print('The device is not valid. Please try again.')
 
-    def read_data2():
+    def read_data2(self):
         '''
         Read data one by one when the device is establish
         This method return an event (include key) which read from device
         '''
-        if self.device:
+        if self.current_device:
             print('-----Begin to receive data-----')
-            for event in self.device.read_loop():
+            for event in self.current_device.read_loop():
                 if event.type == evdev.ecodes.EV_KEY:
                     # print(event)
                     print(evdev.categorize(event))
         else:
             print('The device is not valid. Please try again.')
 
-    def read_data3():
+    def read_data3(self):
         '''
         Read data one by one when the device is establish
         This method return all of the event and categorize which read from device
         '''
-        if self.device:
+        if self.current_device:
             print('-----Begin to receive data-----')
-            for event in self.device.read_loop():
+            for event in self.current_device.read_loop():
                 if event.type == evdev.ecodes.EV_KEY:
                     # print(event)
                     print(
@@ -104,8 +101,8 @@ class BarcodeScan:
         else:
             print('The device is not valid. Please try again.')
 
-    def get_data_realtime():
-        if self.device:
+    def get_data_realtime(self):
+        if self.current_device:
             # Provided as an example taken from my own keyboard attached to a Centos 6 box:
             scancodes = {
                 # Scancode: ASCIICode
@@ -128,9 +125,9 @@ class BarcodeScan:
             x = ''
             caps = False
             # grab provides exclusive access to the device
-            self.device.grab()
+            self.current_device.grab()
             # loop
-            for event in self.device.read_loop():
+            for event in self.current_device.read_loop():
                 if event.type == evdev.ecodes.EV_KEY:
                     # Save the event temporarily to introspect it
                     data = evdev.categorize(event)
@@ -150,6 +147,10 @@ class BarcodeScan:
                             x += key_lookup
                         if(data.scancode == 28):
                             print(f"Qrcode: {x}")          # Print it all out!
+                            #Todo: This method is only using for debug by dev
+                            if(x=='release'):
+                                self.disconnect_device()
+                                return
                             x = ''
         else:
             print('No device found!')
@@ -157,8 +158,11 @@ class BarcodeScan:
 
 if __name__ == "__main__":
     print('The program is running...')
-    list_devices = get_list_devices()
+    barcode = BarcodeScan()
+    # print(barcode)
+    lsD = barcode.get_list_devices()
     demo_device = "/dev/input/event1"
-    device = connect_device(demo_device)
+    device = barcode.connect_device(demo_device)
     # read_data2(device)
-    get_data_realtime(device)
+    barcode.get_data_realtime()
+    print('***Program is exited!!')
