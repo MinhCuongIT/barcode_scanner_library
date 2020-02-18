@@ -25,8 +25,10 @@ class BarcodeScan:
         print('Searching for devices...')
         list_deivce = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
         print('----List devices-----------')
+        count=0
         for d in list_deivce:
-            print(d.fn, d.name, d.phys)
+            print(f"{count}. {d.fn, d.name, d.phys}")
+            count = count+1
         print('---------------------------')
         self.list_devices = list_deivce
         return list_deivce
